@@ -18,7 +18,7 @@ unsigned long previousMillis[NumberOfServos];
 
 void moveServos(int inputPin, int ServoID){
     unsigned long currentMillis = millis();
-    if((digitalRead(inputPin != Status[ServoID]) && (currentMillis-previousMillis[ServoID] >= DelayTime[ServoID]))){
+    if((digitalRead(inputPin) != Status[ServoID]) && (currentMillis-previousMillis[ServoID] >= DelayTime[ServoID])){
         previousMillis[ServoID] = currentMillis;
         
         if (digitalRead(inputPin) == 0){ //als tuimschakelaar weg van de kant van verbinding wijst die je niet verbonden hebt (verbinding wordt verbroken) dan servo draait de arm van zich af (afhankelijk van wissel hoe die komt te staan)
