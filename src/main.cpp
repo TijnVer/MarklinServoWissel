@@ -2,7 +2,8 @@
 #include <Adafruit_PWMServoDriver.h>
 
 // Midden van de schakelaar naar GND
-// Zijkant van de schakelaar naar D pin
+// Zijkant van de schakelaar naar D pin. Verbind de kant waar de schakelaar in staat wanneer je de servo arm naar de servo toe wilt draaien.
+// Werking tuimschakelaar https://th.indicatorlight.com/faq/how-to-wire-a-toggle-switch-with-4-prongs/
 
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 const int NumberOfServos = 4;
@@ -10,8 +11,8 @@ int Status[NumberOfServos];
 int MinValeu[NumberOfServos]={610,710,710,710};        //Naar zeide waar schuifbalk tegen behuizing komt
 int MaxValeu[NumberOfServos]={2980,3080,3080,3080};     // Totale afstand = 2.370 stappen maar de start en einde zijn anders net hoe het tandwiel zit
 int CurrentPosition[NumberOfServos];
-int DelayTime[NumberOfServos]={5,5,5,5}; //maak groter dan 1 anders loop je tegen capaciteit problemen van de arduino
-int StepSize[NumberOfServos]={5,5,5,5};
+int DelayTime[NumberOfServos]={10,10,10,10}; //maak groter dan 1 anders loop je tegen capaciteit problemen van de arduino
+int StepSize[NumberOfServos]={15,15,15,15};
 unsigned long previousMillis[NumberOfServos];
 
 
@@ -20,16 +21,17 @@ void moveServos(int inputPin, int ServoID){
     if((digitalRead(inputPin != Status[ServoID]) && (currentMillis-previousMillis[ServoID] >= DelayTime[ServoID]))){
         previousMillis[ServoID] = currentMillis;
         
-        if (digitalRead(inputPin) == 1){
+        if (digitalRead(inputPin) == 0){ //als tuimschakelaar weg van de kant van verbinding wijst die je niet verbonden hebt (verbinding wordt verbroken) dan servo draait de arm van zich af (afhankelijk van wissel hoe die komt te staan)
           if (CurrentPosition[ServoID] < MaxValeu[ServoID]){
                 CurrentPosition[ServoID] = CurrentPosition[ServoID] + StepSize[ServoID];
                 pwm.writeMicroseconds(ServoID, CurrentPosition[ServoID]);
             }
           else{
                 Status[ServoID]=1;
+                
             }
         }
-        else
+        else  //als tuimschakelaar naar kant van verbinding wijst 
         {
             if (CurrentPosition[ServoID] > MinValeu[ServoID]){
                 CurrentPosition[ServoID] = CurrentPosition[ServoID] - StepSize[ServoID];
@@ -37,6 +39,8 @@ void moveServos(int inputPin, int ServoID){
             }
             else{
                 Status[ServoID]=0;
+                // Serial.println(Status[ServoID]);
+                
             }
         }
     }
@@ -45,7 +49,10 @@ void moveServos(int inputPin, int ServoID){
 }
 
 void setup(){
-    pinMode(53, INPUT_PULLUP);
+    pinMode(51, INPUT_PULLUP);
+    pinMode(50,INPUT_PULLUP);
+    pinMode(49,INPUT_PULLUP);
+    pinMode(13,INPUT_PULLUP);
     Serial.begin(9600);
     // pinMode(6, INPUT_PULLUP);
     for(int i=0; i<NumberOfServos; i=i+1){
@@ -56,9 +63,10 @@ void setup(){
 }
 
 void loop(){
-  Serial.println(digitalRead(53));
+  // Serial.println(digitalRead(53));
   //  moveServos(13,0); //input pin dus schakelaar en output pin van de servo op de PCA9685
-   moveServos(53,0);
-  //  moveServos(13,2);
-
+   moveServos(49,0);
+   moveServos(50,1);
+   moveServos(51,2);
+   moveServos(13,3);
 }
