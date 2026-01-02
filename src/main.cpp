@@ -8,34 +8,39 @@
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 const int NumberOfServos = 4;
 int Status[NumberOfServos];
-int MinValeu[NumberOfServos]={610,710,710,710};        //Naar zeide waar schuifbalk tegen behuizing komt
-int MaxValeu[NumberOfServos]={2980,3080,3080,3080};     // Totale afstand = 2.370 stappen maar de start en einde zijn anders net hoe het tandwiel zit
+int MinValue[NumberOfServos]={900,900,800,710};        //Naar zeide waar schuifbalk tegen behuizing komt
+int MaxValue[NumberOfServos]={2100,2100,2000,3080};     // Totale afstand = 2.370 stappen maar de start en einde zijn anders net hoe het tandwiel zit
 int CurrentPosition[NumberOfServos];
-int DelayTime[NumberOfServos]={10,10,10,10}; //maak groter dan 1 anders loop je tegen capaciteit problemen van de arduino
-int StepSize[NumberOfServos]={15,15,15,15};
+int DelayTime[NumberOfServos]={30,30,30,30}; //maak groter dan 1 anders loop je tegen capaciteit problemen van de arduino
+int StepSize[NumberOfServos]={30,30,30,30};
 unsigned long previousMillis[NumberOfServos];
 
 
 void moveServos(int inputPin, int ServoID){
     unsigned long currentMillis = millis();
-    if((digitalRead(inputPin) != Status[ServoID]) && (currentMillis-previousMillis[ServoID] >= DelayTime[ServoID])){
+    if((digitalRead(inputPin != Status[ServoID])) && (currentMillis-previousMillis[ServoID] >= DelayTime[ServoID])){
         previousMillis[ServoID] = currentMillis;
         
         if (digitalRead(inputPin) == 0){ //als tuimschakelaar weg van de kant van verbinding wijst die je niet verbonden hebt (verbinding wordt verbroken) dan servo draait de arm van zich af (afhankelijk van wissel hoe die komt te staan)
-          if (CurrentPosition[ServoID] < MaxValeu[ServoID]){
+          if (CurrentPosition[ServoID] < MaxValue[ServoID]){
                 CurrentPosition[ServoID] = CurrentPosition[ServoID] + StepSize[ServoID];
                 pwm.writeMicroseconds(ServoID, CurrentPosition[ServoID]);
+                // Serial.print("pin ");Serial.print(inputPin);Serial.print(" met servo");Serial.print(ServoID);Serial.print(" = "); Serial.println(CurrentPosition[ServoID]);
+
             }
           else{
+ 
                 Status[ServoID]=1;
                 
             }
         }
         else  //als tuimschakelaar naar kant van verbinding wijst 
         {
-            if (CurrentPosition[ServoID] > MinValeu[ServoID]){
+            if (CurrentPosition[ServoID] > MinValue[ServoID]){
                 CurrentPosition[ServoID] = CurrentPosition[ServoID] - StepSize[ServoID];
                 pwm.writeMicroseconds(ServoID, CurrentPosition[ServoID]);
+                // Serial.print("pin ");Serial.print(inputPin);Serial.print(" met servo");Serial.print(ServoID);Serial.print(" = "); Serial.println(CurrentPosition[ServoID]);
+
             }
             else{
                 Status[ServoID]=0;
@@ -44,8 +49,7 @@ void moveServos(int inputPin, int ServoID){
             }
         }
     }
-  // Serial.print("Current position of servo ");Serial.print(ServoID);Serial.print(" = "); Serial.println(CurrentPosition[ServoID]);
-
+  
 }
 
 void setup(){
@@ -56,7 +60,7 @@ void setup(){
     Serial.begin(9600);
     // pinMode(6, INPUT_PULLUP);
     for(int i=0; i<NumberOfServos; i=i+1){
-        CurrentPosition[i]=MinValeu[i];
+        CurrentPosition[i]=MinValue[i];
     }
     pwm.begin();
     pwm.setPWMFreq(50);

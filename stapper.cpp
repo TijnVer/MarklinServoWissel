@@ -4,8 +4,8 @@
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 const int NumberOfServos = 4;
 int Status[NumberOfServos];
-int MinValeu[NumberOfServos]={1000,1000,1000,0};
-int MaxValeu[NumberOfServos]={1900,2000,2000,4096};
+int MinValue[NumberOfServos]={1000,1000,1000,0};
+int MaxValue[NumberOfServos]={1900,2000,2000,4096};
 int CurrentPosition[NumberOfServos];
 int DelayTime[NumberOfServos]={10,30,30,0};
 int StepSize[NumberOfServos]={5,5,5,32};
@@ -17,7 +17,7 @@ void moveServos(int inputPin, int connection){
     if((digitalRead(inputPin != Status[connection]) && (currentMillis-previousMillis[connection] >= DelayTime[connection]))){
         previousMillis[connection] = currentMillis;
         if (digitalRead(inputPin) == 1){
-            if (CurrentPosition[connection] < MaxValeu[connection]){
+            if (CurrentPosition[connection] < MaxValue[connection]){
                 CurrentPosition[connection] = CurrentPosition[connection] + StepSize[connection];
                 pwm.writeMicroseconds(connection, CurrentPosition[connection]);
             }
@@ -27,7 +27,7 @@ void moveServos(int inputPin, int connection){
         }
         else
         {
-            if (CurrentPosition[connection] > MinValeu[connection]){
+            if (CurrentPosition[connection] > MinValue[connection]){
                 CurrentPosition[connection] = CurrentPosition[connection] - StepSize[connection];
                 pwm.writeMicroseconds(connection, CurrentPosition[connection]);
             }
@@ -42,7 +42,7 @@ void setup(){
     pinMode(5, INPUT_PULLUP);
     pinMode(6, INPUT_PULLUP);
     for(int i=0; i<NumberOfServos; i=i+1){
-        CurrentPosition[i]=MinValeu[i];
+        CurrentPosition[i]=MinValue[i];
     }
     pwm.begin();
     pwm.setPWMFreq(50);
