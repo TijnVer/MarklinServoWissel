@@ -85,14 +85,14 @@ void loop(){
    moveServos(47,3);
    moveServos(53,4);
    
-   moveServos(52,5);
-   moveServos(48,6);
-   moveServos(46,7);
-   moveServos(45,8);
-   moveServos(44,9);
-   moveServos(43,10);
-   moveServos(42,11);
-   moveServos(41,12);
+   moveServos(52,5); // een voor een aan de juiste schakelaar aan de juiste wissel koppelen.
+  //  moveServos(48,7);
+  //  moveServos(46,10);
+  //  moveServos(45,12);
+  //  moveServos(44,11);
+  //  moveServos(43,6);
+  //  moveServos(42,9);
+  //  moveServos(41,8);
    
    
   //  moveServos()
