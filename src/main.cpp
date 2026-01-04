@@ -6,13 +6,13 @@
 // Werking tuimschakelaar https://th.indicatorlight.com/faq/how-to-wire-a-toggle-switch-with-4-prongs/
 
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
-const int NumberOfServos = 4;
+const int NumberOfServos = 13;
 int Status[NumberOfServos];
-int MinValue[NumberOfServos]={900,900,800,710};        //Naar zeide waar schuifbalk tegen behuizing komt
-int MaxValue[NumberOfServos]={2100,2100,2000,3080};     // Totale afstand = 2.370 stappen maar de start en einde zijn anders net hoe het tandwiel zit
+int MinValue[NumberOfServos]={900,900,800,800,500,500,500,500,500,500,500,500,500};        //Naar zeide waar schuifbalk tegen behuizing komt
+int MaxValue[NumberOfServos]={2100,2100,2000,1900,1900,1900,1900,1900,1900,1900,1900};     // Totale afstand = 2.370 stappen maar de start en einde zijn anders net hoe het tandwiel zit
 int CurrentPosition[NumberOfServos];
-int DelayTime[NumberOfServos]={30,30,30,30}; //maak groter dan 1 anders loop je tegen capaciteit problemen van de arduino
-int StepSize[NumberOfServos]={30,30,30,30};
+int DelayTime[NumberOfServos]={30,30,30,30,30,30,30,30,30,30,30,30,30}; //maak groter dan 1 anders loop je tegen capaciteit problemen van de arduino
+int StepSize[NumberOfServos]={30,30,30,30,30,30,30,30,30,30,30,30,30};
 unsigned long previousMillis[NumberOfServos];
 
 
@@ -53,10 +53,19 @@ void moveServos(int inputPin, int ServoID){
 }
 
 void setup(){
-    pinMode(51, INPUT_PULLUP);
+    pinMode(53, INPUT_PULLUP);
+    pinMode(52,INPUT_PULLUP);
+    pinMode(51,INPUT_PULLUP);
     pinMode(50,INPUT_PULLUP);
-    pinMode(49,INPUT_PULLUP);
-    pinMode(13,INPUT_PULLUP);
+    pinMode(49, INPUT_PULLUP);
+    pinMode(48,INPUT_PULLUP);
+    pinMode(47,INPUT_PULLUP);
+    pinMode(46,INPUT_PULLUP);
+    pinMode(45,INPUT_PULLUP);
+    pinMode(44, INPUT_PULLUP);
+    pinMode(43,INPUT_PULLUP);
+    pinMode(42,INPUT_PULLUP);
+    pinMode(41,INPUT_PULLUP);
     Serial.begin(9600);
     // pinMode(6, INPUT_PULLUP);
     for(int i=0; i<NumberOfServos; i=i+1){
@@ -69,8 +78,22 @@ void setup(){
 void loop(){
   // Serial.println(digitalRead(53));
   //  moveServos(13,0); //input pin dus schakelaar en output pin van de servo op de PCA9685
+  //53-41
    moveServos(49,0);
    moveServos(50,1);
    moveServos(51,2);
-   moveServos(13,3);
+   moveServos(47,3);
+   moveServos(53,4);
+   
+   moveServos(52,5);
+   moveServos(48,6);
+   moveServos(46,7);
+   moveServos(45,8);
+   moveServos(44,9);
+   moveServos(43,10);
+   moveServos(42,11);
+   moveServos(41,12);
+   
+   
+  //  moveServos()
 }
