@@ -5,6 +5,21 @@
 // Zijkant van de schakelaar naar D pin. Verbind de kant waar de schakelaar in staat wanneer je de servo arm naar de servo toe wilt draaien.
 // Werking tuimschakelaar https://th.indicatorlight.com/faq/how-to-wire-a-toggle-switch-with-4-prongs/
 
+/*
+  Schakelaars overzicht (bovenaanzicht bedieningspaneel)
+
+   +---------------------------+
+   |
+   | __________________
+   |                   ⟍
+   | ______________.____.⟍
+   |         d45 s6⟍  d44 s5
+   | _________       ⟍       ⟍
+   |          ⟍        ⟍       ⟍
+   |            ⟍        \       ⟍___
+   |              \       |       
+   |               |      |
+   */
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 const int NumberOfServos = 13;
 
@@ -37,7 +52,7 @@ ServoConfig servos[NumberOfServos] = {
   {AT_MIN, 500, 1900, 0, 30, 30, 0},
   {AT_MIN, 500, 1900, 0, 30, 30, 0},
   {AT_MIN, 500, 1900, 0, 30, 30, 0},
-  {AT_MIN, 500, 1900, 0, 30, 30, 0}
+  {AT_MIN, 600, 2000, 0, 30, 30, 0}  //12
 };
 
 
@@ -72,6 +87,12 @@ void moveServos(int inputPin, int ServoID) {
   }
 
   pwm.writeMicroseconds(ServoID, servos[ServoID].currentPosition);
+//   if (servos[ServoID].status == MOVING) {
+//   Serial.print("inputPin ");
+//   Serial.print(inputPin);
+//   Serial.print(" Servo ");
+//   Serial.println(ServoID);
+// }
 }
 
 
@@ -112,23 +133,27 @@ void loop(){
    //Doen het
    moveServos(45,6);
    moveServos(44,5);
+
 //    if((digitalRead(45)) == LOW){
 //     Serial.println("45");
 //    }
 //nog niet gemacht
 
 
-   
-//    moveServos(52,7); // een voor een aan de juiste schakelaar aan de juiste wissel koppelen.
-//    moveServos(48,9);
-//    moveServos(46,10);
+   //emplacement
+   moveServos(41,7); 
+   moveServos(48,8);
+   moveServos(42,11);
+   moveServos(46,10);
+   moveServos(43,9);
+   moveServos(52,12);
 
    
 //    moveServos(49,11);
 //    moveServos(45,12);
 //    moveServos(43,6);
 //    moveServos(42,9);
-//    moveServos(41,8);
+
    
    
   //  moveServos()
