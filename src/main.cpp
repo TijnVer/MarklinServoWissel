@@ -7,72 +7,97 @@
 
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 const int NumberOfServos = 13;
-int Status[NumberOfServos];
-int MinValue[NumberOfServos]={900,900,800,800,500,500,500,500,500,500,500,500,500};        //Naar zeide waar schuifbalk tegen behuizing komt
-int MaxValue[NumberOfServos]={2100,2100,2000,1900,1900,1900,1900,1900,1900,1900,1900};     // Totale afstand = 2.370 stappen maar de start en einde zijn anders net hoe het tandwiel zit
-int CurrentPosition[NumberOfServos];
-int DelayTime[NumberOfServos]={30,30,30,30,30,30,30,30,30,30,30,30,30}; //maak groter dan 1 anders loop je tegen capaciteit problemen van de arduino
-int StepSize[NumberOfServos]={30,30,30,30,30,30,30,30,30,30,30,30,30};
-unsigned long previousMillis[NumberOfServos];
+
+enum ServoStatus {
+  MOVING,
+  AT_MIN,
+  AT_MAX
+};
+
+struct ServoConfig {
+  ServoStatus status;
+  int minValue; //Naar zeide waar schuifbalk tegen behuizing komt
+  int maxValue;
+  int currentPosition;
+  int delayTime; //maak groter dan 1 anders loop je tegen capaciteit problemen van de arduino
+  int stepSize;
+  unsigned long previousMillis;
+};
+
+ServoConfig servos[NumberOfServos] = {
+  {AT_MIN, 900, 2100, 0, 30, 30, 0},
+  {AT_MIN, 900, 2100, 0, 30, 30, 0},
+  {AT_MIN, 800, 2000, 0, 30, 30, 0},
+  {AT_MIN, 800, 1900, 0, 30, 30, 0},
+  {AT_MIN, 500, 1900, 0, 30, 30, 0},
+  {AT_MIN, 500, 1700, 0, 30, 30, 0}, //5 
+  {AT_MIN, 700, 1900, 0, 30, 30, 0}, //6
+  {AT_MIN, 500, 1900, 0, 30, 30, 0},
+  {AT_MIN, 500, 1900, 0, 30, 30, 0},
+  {AT_MIN, 500, 1900, 0, 30, 30, 0},
+  {AT_MIN, 500, 1900, 0, 30, 30, 0},
+  {AT_MIN, 500, 1900, 0, 30, 30, 0},
+  {AT_MIN, 500, 1900, 0, 30, 30, 0}
+};
 
 
-void moveServos(int inputPin, int ServoID){
-    unsigned long currentMillis = millis();
-    if((digitalRead(inputPin != Status[ServoID])) && (currentMillis-previousMillis[ServoID] >= DelayTime[ServoID])){
-        previousMillis[ServoID] = currentMillis;
-        
-        if (digitalRead(inputPin) == 0){ //als tuimschakelaar weg van de kant van verbinding wijst die je niet verbonden hebt (verbinding wordt verbroken) dan servo draait de arm van zich af (afhankelijk van wissel hoe die komt te staan)
-          if (CurrentPosition[ServoID] < MaxValue[ServoID]){
-                CurrentPosition[ServoID] = CurrentPosition[ServoID] + StepSize[ServoID];
-                pwm.writeMicroseconds(ServoID, CurrentPosition[ServoID]);
-                // Serial.print("pin ");Serial.print(inputPin);Serial.print(" met servo");Serial.print(ServoID);Serial.print(" = "); Serial.println(CurrentPosition[ServoID]);
+void moveServos(int inputPin, int ServoID) {
+  if (ServoID < 0 || ServoID >= NumberOfServos) return;
 
-            }
-          else{
- 
-                Status[ServoID]=1;
-                
-            }
-        }
-        else  //als tuimschakelaar naar kant van verbinding wijst 
-        {
-            if (CurrentPosition[ServoID] > MinValue[ServoID]){
-                CurrentPosition[ServoID] = CurrentPosition[ServoID] - StepSize[ServoID];
-                pwm.writeMicroseconds(ServoID, CurrentPosition[ServoID]);
-                // Serial.print("pin ");Serial.print(inputPin);Serial.print(" met servo");Serial.print(ServoID);Serial.print(" = "); Serial.println(CurrentPosition[ServoID]);
+  unsigned long currentMillis = millis();
+  if (currentMillis - servos[ServoID].previousMillis < servos[ServoID].delayTime) {
+    return;
+  }
+  servos[ServoID].previousMillis = currentMillis;
 
-            }
-            else{
-                Status[ServoID]=0;
-                // Serial.println(Status[ServoID]);
-                
-            }
-        }
+  bool switchToMax = (digitalRead(inputPin) == LOW); // richting
+
+  if (switchToMax) {
+    if (servos[ServoID].currentPosition < servos[ServoID].maxValue) {
+      servos[ServoID].currentPosition += servos[ServoID].stepSize;
+      servos[ServoID].status = MOVING;
+    } else {
+      servos[ServoID].currentPosition = servos[ServoID].maxValue;
+      servos[ServoID].status = AT_MAX;
     }
-  
+  } 
+  else {
+    if (servos[ServoID].currentPosition > servos[ServoID].minValue) {
+      servos[ServoID].currentPosition -= servos[ServoID].stepSize;
+      servos[ServoID].status = MOVING;
+    } else {
+      servos[ServoID].currentPosition = servos[ServoID].minValue;
+      servos[ServoID].status = AT_MIN;
+    }
+  }
+
+  pwm.writeMicroseconds(ServoID, servos[ServoID].currentPosition);
 }
 
+
 void setup(){
-    pinMode(53, INPUT_PULLUP);
+    pinMode(53,INPUT_PULLUP);
     pinMode(52,INPUT_PULLUP);
     pinMode(51,INPUT_PULLUP);
     pinMode(50,INPUT_PULLUP);
-    pinMode(49, INPUT_PULLUP);
+    pinMode(49,INPUT_PULLUP);
     pinMode(48,INPUT_PULLUP);
     pinMode(47,INPUT_PULLUP);
     pinMode(46,INPUT_PULLUP);
     pinMode(45,INPUT_PULLUP);
-    pinMode(44, INPUT_PULLUP);
+    pinMode(44,INPUT_PULLUP);
     pinMode(43,INPUT_PULLUP);
     pinMode(42,INPUT_PULLUP);
     pinMode(41,INPUT_PULLUP);
     Serial.begin(9600);
     // pinMode(6, INPUT_PULLUP);
-    for(int i=0; i<NumberOfServos; i=i+1){
-        CurrentPosition[i]=MinValue[i];
-    }
     pwm.begin();
     pwm.setPWMFreq(50);
+    for(int i=0; i<NumberOfServos; i=i+1){
+        servos[i].currentPosition=servos[i].minValue;
+        pwm.writeMicroseconds(i, servos[i].currentPosition);
+    }
+    
 }
 
 void loop(){
@@ -84,15 +109,26 @@ void loop(){
    moveServos(51,2);
    moveServos(47,3);
    moveServos(53,4);
+   //Doen het
+   moveServos(45,6);
+   moveServos(44,5);
+//    if((digitalRead(45)) == LOW){
+//     Serial.println("45");
+//    }
+//nog niet gemacht
+
+
    
-   moveServos(52,5); // een voor een aan de juiste schakelaar aan de juiste wissel koppelen.
-  //  moveServos(48,7);
-  //  moveServos(46,10);
-  //  moveServos(45,12);
-  //  moveServos(44,11);
-  //  moveServos(43,6);
-  //  moveServos(42,9);
-  //  moveServos(41,8);
+//    moveServos(52,7); // een voor een aan de juiste schakelaar aan de juiste wissel koppelen.
+//    moveServos(48,9);
+//    moveServos(46,10);
+
+   
+//    moveServos(49,11);
+//    moveServos(45,12);
+//    moveServos(43,6);
+//    moveServos(42,9);
+//    moveServos(41,8);
    
    
   //  moveServos()
