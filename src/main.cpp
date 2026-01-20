@@ -4,7 +4,7 @@
 // Midden van de schakelaar naar GND
 // Zijkant van de schakelaar naar D pin. Verbind de kant waar de schakelaar in staat wanneer je de servo arm naar de servo toe wilt draaien.
 // Werking tuimschakelaar https://th.indicatorlight.com/faq/how-to-wire-a-toggle-switch-with-4-prongs/
-
+// Arduino Mega ---> communicatie via I2C ---> PCA9685 ---> Servo 
 /*
   Schakelaars overzicht (bovenaanzicht bedieningspaneel)
    +---------------------------+
