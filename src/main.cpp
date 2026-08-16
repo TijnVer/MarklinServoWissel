@@ -119,6 +119,14 @@ void setup(){
     pinMode(43,INPUT_PULLUP);
     pinMode(42,INPUT_PULLUP);
     pinMode(41,INPUT_PULLUP);
+    pinMode(40,INPUT_PULLUP);
+    pinMode(39,INPUT_PULLUP);
+    pinMode(38,INPUT_PULLUP);
+    pinMode(37,INPUT_PULLUP);
+    pinMode(36,INPUT_PULLUP);
+    pinMode(35,INPUT_PULLUP);
+    pinMode(34,INPUT_PULLUP);
+    pinMode(33,INPUT_PULLUP);
     Serial.begin(9600);
     // pinMode(6, INPUT_PULLUP);
     pwm.begin();
@@ -127,10 +135,25 @@ void setup(){
         servos[i].currentPosition=servos[i].minValue;
         pwm.writeMicroseconds(i, servos[i].currentPosition);
     }
-    
+    Serial.print("Setup complete");
 }
 
+void checkPins()
+{
+    const int pins[] = {40, 39, 38, 37, 36, 35, 34, 33};
+
+    for (int i = 0; i < 8; i++)
+    {
+        if (digitalRead(pins[i]) == LOW)
+        {
+            Serial.print("Pin ");
+            Serial.print(pins[i]);
+            Serial.println(" is aan GND!");
+        }
+    }
+}
 void loop(){
+  checkPins();
   // Serial.println(digitalRead(53));
   //  moveServos(13,0); //input pin dus schakelaar en output pin van de servo op de PCA9685
   //53-41
