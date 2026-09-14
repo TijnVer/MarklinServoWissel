@@ -139,6 +139,8 @@ void setup()
   pinMode(35, INPUT_PULLUP);
   pinMode(34, INPUT_PULLUP);
   pinMode(33, INPUT_PULLUP);
+  pinMode(6,OUTPUT);
+  pinMode(7,OUTPUT);
   pinMode(13,OUTPUT);
   Serial.begin(9600);
   // pinMode(6, INPUT_PULLUP);
@@ -158,13 +160,29 @@ void checkPins()
 
   for (int i = 0; i < 8; i++)
   {
-    if (digitalRead(pins[i]) == LOW)
+    if (digitalRead(pi ns[i]) == LOW)
     {
       Serial.print("Pin ");
       Serial.print(pins[i]);
       Serial.println(" is aan GND!");
     }
-    if (digitalRead(36) == LOW)
+    if (digitalRead(39) == LOW)
+    {
+      digitalWrite(7, LOW);
+    }
+    else
+    {
+      digitalWrite(7, HIGH);
+    }
+    if (digitalRead(34) == LOW)
+    {
+      digitalWrite(6, LOW);
+    }
+    else
+    {
+      digitalWrite(6, HIGH);
+    }
+    if (digitalRead(38) == LOW)
     {
       digitalWrite(13, LOW);
     }
