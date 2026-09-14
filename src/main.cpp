@@ -160,7 +160,7 @@ void checkPins()
 
   for (int i = 0; i < 8; i++)
   {
-    if (digitalRead(pi ns[i]) == LOW)
+    if (digitalRead(pins[i]) == LOW)
     {
       Serial.print("Pin ");
       Serial.print(pins[i]);
