@@ -1362,7 +1362,7 @@
             <mxPoint x="1411.5" y="420" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="gbFEg_RryxI20dTc3zB9-25" parent="1" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" value="Totaal beschikbare secties = 4*okkie8=32. In gebruik 32" vertex="1">
+        <mxCell id="gbFEg_RryxI20dTc3zB9-25" parent="1" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" value="Totaal beschikbare secties = 4*okkie8=32. In gebruik 29" vertex="1">
           <mxGeometry height="30" width="320" x="80" y="698" as="geometry" />
         </mxCell>
       </root>
