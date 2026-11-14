@@ -1,5 +1,6 @@
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
+#include <EEPROM.h>
 
 // Midden van de schakelaar naar GND
 // Zijkant van de schakelaar naar D pin. Verbind de kant waar de schakelaar in staat wanneer je de servo arm naar de servo toe wilt draaien.
@@ -48,75 +49,114 @@ struct ServoConfig
   int delayTime; // maak groter dan 1 anders loop je tegen capaciteit problemen van de arduino
   int stepSize;
   unsigned long previousMillis;
+  int vorigeSchakelaarStatus;
 };
 
 ServoConfig servos[NumberOfServos] = {
-    {AT_MIN, 900, 2100, 0, 30, 30, 0},
-    {AT_MIN, 900, 2100, 0, 30, 30, 0},
-    {AT_MIN, 800, 2000, 0, 30, 30, 0},
-    {AT_MIN, 800, 2100, 0, 30, 30, 0},
-    {AT_MIN, 500, 2100, 0, 30, 30, 0},
-    {AT_MIN, 500, 2100, 0, 30, 30, 0}, // 5
-    {AT_MIN, 500, 1900, 0, 30, 30, 0}, // 6
-    {AT_MIN, 400, 1800, 0, 30, 30, 0},
-    {AT_MIN, 600, 2000, 0, 30, 30, 0},
-    {AT_MIN, 500, 2200, 0, 30, 30, 0},
-    {AT_MIN, 700, 1900, 0, 30, 30, 0},//10
-    {AT_MIN, 700, 2100, 0, 30, 30, 0},
-    {AT_MIN, 600, 2000, 0, 30, 30, 0} // 12
+    {AT_MIN, 900, 2100, 0, 30, 30, 0, HIGH},
+    {AT_MIN, 900, 2100, 0, 30, 30, 0, HIGH},
+    {AT_MIN, 800, 2000, 0, 30, 30, 0, HIGH},
+    {AT_MIN, 800, 2100, 0, 30, 30, 0, HIGH},
+    {AT_MIN, 500, 2100, 0, 30, 30, 0, HIGH},
+    {AT_MIN, 500, 2100, 0, 30, 30, 0, HIGH}, // 5
+    {AT_MIN, 500, 1900, 0, 30, 30, 0, HIGH}, // 6
+    {AT_MIN, 400, 1800, 0, 30, 30, 0, HIGH},
+    {AT_MIN, 600, 2000, 0, 30, 30, 0, HIGH},
+    {AT_MIN, 500, 2200, 0, 30, 30, 0, HIGH},
+    {AT_MIN, 700, 1900, 0, 30, 30, 0, HIGH},//10
+    {AT_MIN, 700, 2100, 0, 30, 30, 0, HIGH},
+    {AT_MIN, 600, 2000, 0, 30, 30, 0, HIGH} // 12
 };
+
+void slaServoPositiesOp()
+{
+  for (int i = 0; i < NumberOfServos; i++)
+  {
+    EEPROM.put(i * sizeof(int), servos[i].currentPosition);
+  }
+}
+
+void laadServoPosities()
+{
+  for (int i = 0; i < NumberOfServos; i++)
+  {
+    int positie;
+    EEPROM.get(i * sizeof(int), positie);
+
+    if (positie >= servos[i].minValue &&
+        positie <= servos[i].maxValue)
+    {
+      servos[i].currentPosition = positie;
+    }
+    else
+    {
+      servos[i].currentPosition = servos[i].minValue;
+    }
+
+    pwm.writeMicroseconds(i, servos[i].currentPosition);
+  }
+}
+
 
 void moveServos(int inputPin, int ServoID)
 {
   if (ServoID < 0 || ServoID >= NumberOfServos)
     return;
 
+  int huidigeSchakelaarStatus = digitalRead(inputPin);
+
+  servos[ServoID].vorigeSchakelaarStatus = huidigeSchakelaarStatus;
+
+  int doelpositie = (huidigeSchakelaarStatus == LOW)
+                    ? servos[ServoID].maxValue
+                    : servos[ServoID].minValue;
+
   unsigned long currentMillis = millis();
+
   if (currentMillis - servos[ServoID].previousMillis < servos[ServoID].delayTime)
-  {
     return;
-  }
+
+  if (servos[ServoID].currentPosition == doelpositie)
+    return;
+
   servos[ServoID].previousMillis = currentMillis;
 
-  bool switchToMax = (digitalRead(inputPin) == LOW); // richting
-
-  if (switchToMax)
+  if (servos[ServoID].currentPosition < doelpositie)
   {
-    if (servos[ServoID].currentPosition < servos[ServoID].maxValue)
-    {
-      servos[ServoID].currentPosition += servos[ServoID].stepSize;
-      servos[ServoID].status = MOVING;
-    }
-    else
-    {
-      servos[ServoID].currentPosition = servos[ServoID].maxValue;
-      servos[ServoID].status = AT_MAX;
-    }
+    servos[ServoID].currentPosition = min(
+      servos[ServoID].currentPosition + servos[ServoID].stepSize,
+      doelpositie
+    );
   }
   else
   {
-    if (servos[ServoID].currentPosition > servos[ServoID].minValue)
-    {
-      servos[ServoID].currentPosition -= servos[ServoID].stepSize;
-      servos[ServoID].status = MOVING;
-    }
-    else
-    {
-      servos[ServoID].currentPosition = servos[ServoID].minValue;
-      servos[ServoID].status = AT_MIN;
-    }
+    servos[ServoID].currentPosition = max(
+      servos[ServoID].currentPosition - servos[ServoID].stepSize,
+      doelpositie
+    );
   }
 
   pwm.writeMicroseconds(ServoID, servos[ServoID].currentPosition);
-  // if (servos[ServoID].status == MOVING) {
-  // Serial.print("inputPin ");
-  // Serial.print(inputPin);
-  // Serial.print(" Servo ");
-  // Serial.println(ServoID);
-  // }
+
+  if (servos[ServoID].currentPosition == doelpositie)
+  {
+    slaServoPositiesOp();
+  }
 }
 
-void setup()
+const int treindetectiepins[] = {40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25};
+  const int buzzerPin = A0;
+
+  // Vorige status van iedere ingang
+  int vorigeStatus[16];
+
+  // Instellingen buzzer
+  int buzzerFrequentie = 2000;  // Toonhoogte in Hz
+  int buzzerDuur = 120;          // Pieplengte in milliseconden
+
+
+
+  void setup()
 {
   pinMode(53, INPUT_PULLUP);
   pinMode(52, INPUT_PULLUP);
@@ -131,14 +171,9 @@ void setup()
   pinMode(43, INPUT_PULLUP);
   pinMode(42, INPUT_PULLUP);
   pinMode(41, INPUT_PULLUP);
-  pinMode(40, INPUT_PULLUP);
-  pinMode(39, INPUT_PULLUP);
-  pinMode(38, INPUT_PULLUP);
-  pinMode(37, INPUT_PULLUP);
-  pinMode(36, INPUT_PULLUP);
-  pinMode(35, INPUT_PULLUP);
-  pinMode(34, INPUT_PULLUP);
-  pinMode(33, INPUT_PULLUP);
+
+  
+  
   pinMode(6,OUTPUT);
   pinMode(7,OUTPUT);
   pinMode(13,OUTPUT);
@@ -146,56 +181,85 @@ void setup()
   // pinMode(6, INPUT_PULLUP);
   pwm.begin();
   pwm.setPWMFreq(50);
-  for (int i = 0; i < NumberOfServos; i = i + 1)
+
+  // Servo-posities herstellen
+  laadServoPosities();
+
+  // Schakelaarstanden bij opstarten onthouden
+  servos[0].vorigeSchakelaarStatus = digitalRead(49);
+  servos[1].vorigeSchakelaarStatus = digitalRead(50);
+  servos[2].vorigeSchakelaarStatus = digitalRead(51);
+  servos[3].vorigeSchakelaarStatus = digitalRead(47);
+  servos[4].vorigeSchakelaarStatus = digitalRead(53);
+  servos[5].vorigeSchakelaarStatus = digitalRead(44);
+  servos[6].vorigeSchakelaarStatus = digitalRead(45);
+  servos[7].vorigeSchakelaarStatus = digitalRead(41);
+  servos[8].vorigeSchakelaarStatus = digitalRead(48);
+  servos[9].vorigeSchakelaarStatus = digitalRead(43);
+  servos[10].vorigeSchakelaarStatus = digitalRead(46);
+  servos[11].vorigeSchakelaarStatus = digitalRead(42);
+  servos[12].vorigeSchakelaarStatus = digitalRead(52);
+  
+  // for (int i = 0; i < NumberOfServos; i = i + 1)
+  // {
+  //   servos[i].currentPosition = servos[i].minValue;
+  //   pwm.writeMicroseconds(i, servos[i].currentPosition);
+  // }
+  for (int i = 0; i < 16; i++)
   {
-    servos[i].currentPosition = servos[i].minValue;
-    pwm.writeMicroseconds(i, servos[i].currentPosition);
+    pinMode(treindetectiepins[i], INPUT_PULLUP);
+    vorigeStatus[i] = digitalRead(treindetectiepins[i]);
   }
   Serial.print("Setup complete");
 }
 
-void checkPins()
-{
-  const int pins[] = {40, 39, 38, 37, 36, 35, 34, 33};
 
-  for (int i = 0; i < 8; i++)
+
+
+
+void TreinDetectie()
+{
+  for (int i = 0; i < 16; i++)
   {
-    if (digitalRead(pins[i]) == LOW)
+    int huidigeStatus = digitalRead(treindetectiepins[i]);
+
+    // Controleer of de ingang veranderd is
+    if (huidigeStatus != vorigeStatus[i])
     {
       Serial.print("Pin ");
-      Serial.print(pins[i]);
-      Serial.println(" is aan GND!");
-    }
-    if (digitalRead(39) == LOW)
-    {
-      digitalWrite(7, LOW);
-    }
-    else
-    {
-      digitalWrite(7, HIGH);
-    }
-    if (digitalRead(34) == LOW)
-    {
-      digitalWrite(6, LOW);
-    }
-    else
-    {
-      digitalWrite(6, HIGH);
-    }
-    if (digitalRead(38) == LOW)
-    {
-      digitalWrite(13, LOW);
-    }
-    else
-    {
-      digitalWrite(13, HIGH);
+      Serial.print(treindetectiepins[i]);
+
+      if (huidigeStatus == LOW)
+      {
+        Serial.println(" is aan GND!");
+      }
+      else
+      {
+        Serial.println(" is los!");
+      }
+
+      // Pieptoon bij iedere verandering
+      tone(buzzerPin, buzzerFrequentie, buzzerDuur);
+
+      // Vorige status bijwerken
+      vorigeStatus[i] = huidigeStatus;
     }
   }
+
+  // Uitgangen aansturen
+  digitalWrite(7, digitalRead(39) == LOW ? LOW : HIGH);
+  digitalWrite(6, digitalRead(34) == LOW ? LOW : HIGH);
+  digitalWrite(13, digitalRead(38) == LOW ? LOW : HIGH);
 }
+
+
+
+
+
 void loop()
 {
-  checkPins();
-  // Serial.println(digitalRead(53));
+  TreinDetectie();
+  Serial.println(digitalRead(53));
   //  moveServos(13,0); //input pin dus schakelaar en output pin van de servo op de PCA9685
   // 53-41
   moveServos(49, 0);
